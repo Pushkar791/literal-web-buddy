@@ -76,7 +76,7 @@ const AuroraOrbMesh: React.FC<{ isActive: boolean }> = ({ isActive }) => {
 
   return (
     <Sphere ref={meshRef} args={[2, 64, 64]}>
-      <auroraMateria ref={materialRef} transparent />
+      <auroraMaterial ref={materialRef} transparent />
     </Sphere>
   );
 };
