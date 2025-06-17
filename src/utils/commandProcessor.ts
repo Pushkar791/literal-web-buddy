@@ -1,4 +1,3 @@
-
 interface CommandResponse {
   message: string;
   action?: () => void;
@@ -18,7 +17,8 @@ const intentMap: Record<string, string> = {
   reddit: "https://www.reddit.com",
   github: "https://www.github.com",
   stackoverflow: "https://stackoverflow.com",
-  wikipedia: "https://www.wikipedia.org"
+  wikipedia: "https://www.wikipedia.org",
+  fitbuddy: "https://fit-buddy-ai.vercel.app/"
 };
 
 const greetings = [

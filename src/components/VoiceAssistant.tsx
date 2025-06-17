@@ -1,18 +1,18 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Volume2 } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import { useWakeWordDetection } from '../hooks/useWakeWordDetection';
 import { processCommand } from '../utils/commandProcessor';
 import WaveformVisualizer from './WaveformVisualizer';
+import AuroraOrb from './AuroraOrb';
 import { Button } from '@/components/ui/button';
 
 const VoiceAssistant = () => {
   const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
-  const [assistantState, setAssistantState] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
+  const [assistantState, setAssistantState: React.Dispatch<React.SetStateAction<"idle" | "listening" | "processing" | "responding">>] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
 
   const { startListening, stopListening, transcript, isRecognitionActive } = useVoiceRecognition();
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -79,29 +79,19 @@ const VoiceAssistant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
         {/* Main Assistant Interface */}
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-white mb-2">Literal</h1>
           <p className="text-gray-300 text-sm">Your Personal Voice Assistant</p>
 
-          {/* Central Activation Button */}
+          {/* Central Aurora Orb */}
           <div className="relative flex items-center justify-center">
-            <div 
-              className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-300 cursor-pointer ${
-                isActive 
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 shadow-xl shadow-blue-500/25 animate-pulse' 
-                  : 'bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700'
-              }`}
+            <AuroraOrb 
+              isActive={isActive}
               onClick={handleManualActivation}
-            >
-              {isListening ? (
-                <Mic className="w-12 h-12 text-white animate-pulse" />
-              ) : (
-                <MicOff className="w-12 h-12 text-white" />
-              )}
-            </div>
+            />
             
             {/* Ripple effect for active state */}
             {isActive && (
@@ -151,8 +141,8 @@ const VoiceAssistant = () => {
 
           {/* Instructions */}
           <div className="text-center space-y-2 text-gray-400 text-sm">
-            <p>Say "Hey Literal" or click the microphone</p>
-            <p>Try: "Open YouTube", "Launch Instagram", "Search Google"</p>
+            <p>Say "Hey Literal" or click the aurora orb</p>
+            <p>Try: "Open YouTube", "Launch FitBuddy", "Search Google"</p>
           </div>
         </div>
       </div>
