@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Volume2 } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
@@ -12,7 +13,7 @@ const VoiceAssistant = () => {
   const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
-  const [assistantState, setAssistantState: React.Dispatch<React.SetStateAction<"idle" | "listening" | "processing" | "responding">>] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
+  const [assistantState, setAssistantState] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
 
   const { startListening, stopListening, transcript, isRecognitionActive } = useVoiceRecognition();
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -24,7 +25,7 @@ const VoiceAssistant = () => {
       console.log('Wake word detected!');
       setIsActive(true);
       setAssistantState('responding');
-      speak("Yes Pushkar, I'm listening.", () => {
+      speak("Yes, I'm listening.", () => {
         setAssistantState('listening');
         startListening();
       });
