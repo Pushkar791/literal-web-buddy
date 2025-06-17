@@ -24,7 +24,7 @@ const VoiceAssistant = () => {
       console.log('Wake word detected!');
       setIsActive(true);
       setAssistantState('responding');
-      speak("Yes Pushkar, I'm listening.", () => {
+      speak("Yes {userName}, I'm listening.", undefined, () => {
         setAssistantState('listening');
         startListening();
       });
@@ -41,7 +41,7 @@ const VoiceAssistant = () => {
       setTimeout(() => {
         const response = processCommand(transcript);
         setAssistantState('responding');
-        speak(response.message, () => {
+        speak(response.message, transcript, () => {
           if (response.action) {
             response.action();
           }
