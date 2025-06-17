@@ -25,7 +25,7 @@ const greetings = [
   "Hello! How can I help you today?",
   "Hi there! What can I do for you?",
   "Good to see you! How can I assist?",
-  "Hello {userName}! Ready to help you out."
+  "Hello Pushkar! Ready to help you out."
 ];
 
 const openApp = (url: string, appName: string): CommandResponse => {
@@ -116,16 +116,16 @@ export const processCommand = (transcript: string): CommandResponse => {
 
   // Handle thanks
   if (command.includes('thank') || command.includes('thanks')) {
-    return { message: "You're welcome {userName}! Happy to help anytime." };
+    return { message: "You're welcome! Happy to help anytime." };
   }
 
   // Handle goodbye
   if (command.includes('bye') || command.includes('goodbye') || command.includes('see you')) {
-    return { message: "Goodbye {userName}! Have a great day!" };
+    return { message: "Goodbye! Have a great day!" };
   }
 
   // Default response for unrecognized commands
   return { 
-    message: "I'm not sure how to help with that {userName}. Try asking me to open an app like YouTube or Instagram, or search for something on Google." 
+    message: "I'm not sure how to help with that. Try asking me to open an app like YouTube or Instagram, or search for something on Google." 
   };
 };

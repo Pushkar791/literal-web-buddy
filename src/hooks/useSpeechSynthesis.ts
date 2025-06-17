@@ -4,7 +4,6 @@ import { useState, useCallback, useRef } from 'react';
 export const useSpeechSynthesis = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const [detectedGender, setDetectedGender] = useState<'male' | 'female' | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Check for browser support
@@ -14,59 +13,17 @@ export const useSpeechSynthesis = () => {
     }
   });
 
-  const detectGender = useCallback((transcript: string) => {
-    // Simple heuristic based on voice patterns and common speech characteristics
-    // This is a basic implementation - in a real app you'd use more sophisticated audio analysis
-    const femaleIndicators = [
-      'please', 'thank you', 'sorry', 'excuse me', 'could you', 'would you',
-      'lovely', 'wonderful', 'amazing', 'gorgeous', 'beautiful'
-    ];
-    
-    const maleIndicators = [
-      'hey', 'yo', 'dude', 'man', 'bro', 'cool', 'awesome', 'nice',
-      'open', 'launch', 'start', 'go'
-    ];
-
-    const lowerTranscript = transcript.toLowerCase();
-    
-    let femaleScore = 0;
-    let maleScore = 0;
-    
-    femaleIndicators.forEach(indicator => {
-      if (lowerTranscript.includes(indicator)) femaleScore++;
-    });
-    
-    maleIndicators.forEach(indicator => {
-      if (lowerTranscript.includes(indicator)) maleScore++;
-    });
-    
-    // Default to male if no clear indicators or if scores are equal
-    const gender = femaleScore > maleScore ? 'female' : 'male';
-    setDetectedGender(gender);
-    return gender;
-  }, []);
-
-  const speak = useCallback((text: string, transcript?: string, onComplete?: () => void) => {
+  const speak = useCallback((text: string, onComplete?: () => void) => {
     if (!isSupported || !text) {
       console.warn('Speech synthesis not supported or no text provided');
       onComplete?.();
       return;
     }
 
-    // Detect gender if transcript is provided
-    let gender = detectedGender;
-    if (transcript) {
-      gender = detectGender(transcript);
-    }
-
-    // Replace name placeholder with detected gender name
-    const userName = gender === 'female' ? 'Kashvi' : 'Pushkar';
-    const personalizedText = text.replace(/\{userName\}/g, userName);
-
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(personalizedText);
+    const utterance = new SpeechSynthesisUtterance(text);
     
     // Configure voice settings for UK English Male-like voice
     utterance.rate = 0.9;
@@ -103,7 +60,7 @@ export const useSpeechSynthesis = () => {
 
     utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-  }, [isSupported, detectedGender, detectGender]);
+  }, [isSupported]);
 
   const stopSpeaking = useCallback(() => {
     if (isSupported) {
@@ -116,7 +73,6 @@ export const useSpeechSynthesis = () => {
     speak,
     stopSpeaking,
     isSpeaking,
-    isSupported,
-    detectedGender
+    isSupported
   };
 };
