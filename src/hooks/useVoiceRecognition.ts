@@ -23,6 +23,7 @@ export const useVoiceRecognition = () => {
   const [isRecognitionActive, setIsRecognitionActive] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const isActiveRef = useRef(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -38,6 +39,7 @@ export const useVoiceRecognition = () => {
         recognition.onstart = () => {
           console.log('Voice recognition started');
           setIsRecognitionActive(true);
+          isActiveRef.current = true;
         };
         
         recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -49,11 +51,13 @@ export const useVoiceRecognition = () => {
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
           console.error('Voice recognition error:', event.error);
           setIsRecognitionActive(false);
+          isActiveRef.current = false;
         };
         
         recognition.onend = () => {
           console.log('Voice recognition ended');
           setIsRecognitionActive(false);
+          isActiveRef.current = false;
         };
         
         recognitionRef.current = recognition;
@@ -62,21 +66,28 @@ export const useVoiceRecognition = () => {
   }, []);
 
   const startListening = useCallback(() => {
-    if (recognitionRef.current && !isRecognitionActive) {
+    if (recognitionRef.current && !isActiveRef.current) {
       setTranscript('');
       try {
         recognitionRef.current.start();
       } catch (error) {
         console.error('Error starting voice recognition:', error);
+        setIsRecognitionActive(false);
       }
+    } else if (isActiveRef.current) {
+      console.log('Recognition already active, skipping start');
     }
-  }, [isRecognitionActive]);
+  }, []);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isRecognitionActive) {
-      recognitionRef.current.stop();
+    if (recognitionRef.current && isActiveRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.log('Error stopping recognition:', error);
+      }
     }
-  }, [isRecognitionActive]);
+  }, []);
 
   return {
     transcript,
