@@ -7,6 +7,7 @@ export const useWakeWordDetection = () => {
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
   const restartTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isStartingRef = useRef(false);
 
   const cleanup = useCallback(() => {
     if (restartTimeoutRef.current) {
@@ -18,15 +19,33 @@ export const useWakeWordDetection = () => {
   const startWakeWordDetection = useCallback(() => {
     if (typeof window === 'undefined') return;
     
+    // Prevent multiple simultaneous starts
+    if (isStartingRef.current) {
+      console.log('Wake word detection already starting, skipping');
+      return;
+    }
+
+    // Check if recognition is already active
+    if (recognitionRef.current && isListeningRef.current) {
+      console.log('Wake word detection already active, skipping');
+      return;
+    }
+    
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       console.warn('Speech recognition not supported');
       return;
     }
 
+    isStartingRef.current = true;
+
     // Cleanup any existing recognition
     if (recognitionRef.current) {
-      recognitionRef.current.abort();
+      try {
+        recognitionRef.current.abort();
+      } catch (error) {
+        console.log('Error aborting existing recognition:', error);
+      }
       recognitionRef.current = null;
     }
     cleanup();
@@ -39,6 +58,8 @@ export const useWakeWordDetection = () => {
     recognition.onstart = () => {
       console.log('Wake word detection started');
       setIsDetectionActive(true);
+      isListeningRef.current = true;
+      isStartingRef.current = false;
     };
 
     recognition.onresult = (event: any) => {
@@ -58,7 +79,11 @@ export const useWakeWordDetection = () => {
         
         // Stop current recognition
         isListeningRef.current = false;
-        recognition.stop();
+        try {
+          recognition.stop();
+        } catch (error) {
+          console.log('Error stopping recognition:', error);
+        }
         
         // Reset after a delay to prevent immediate re-triggering
         setTimeout(() => {
@@ -73,6 +98,7 @@ export const useWakeWordDetection = () => {
 
     recognition.onerror = (event: any) => {
       console.error('Wake word detection error:', event.error);
+      isStartingRef.current = false;
       
       if (event.error === 'not-allowed') {
         console.error('Microphone access denied');
@@ -84,7 +110,7 @@ export const useWakeWordDetection = () => {
       // Only restart on recoverable errors and if we should be listening
       if (isListeningRef.current && event.error !== 'aborted') {
         restartTimeoutRef.current = setTimeout(() => {
-          if (isListeningRef.current) {
+          if (isListeningRef.current && !isStartingRef.current) {
             startWakeWordDetection();
           }
         }, 1000);
@@ -94,11 +120,12 @@ export const useWakeWordDetection = () => {
     recognition.onend = () => {
       console.log('Wake word detection ended');
       setIsDetectionActive(false);
+      isStartingRef.current = false;
       
       // Only restart if we should still be listening and there's no pending restart
-      if (isListeningRef.current && !restartTimeoutRef.current) {
+      if (isListeningRef.current && !restartTimeoutRef.current && !isStartingRef.current) {
         restartTimeoutRef.current = setTimeout(() => {
-          if (isListeningRef.current) {
+          if (isListeningRef.current && !isStartingRef.current) {
             startWakeWordDetection();
           }
         }, 100);
@@ -106,19 +133,20 @@ export const useWakeWordDetection = () => {
     };
 
     recognitionRef.current = recognition;
-    isListeningRef.current = true;
     
     try {
       recognition.start();
     } catch (error) {
       console.error('Error starting wake word detection:', error);
       setIsDetectionActive(false);
+      isStartingRef.current = false;
     }
   }, [cleanup]);
 
   const stopWakeWordDetection = useCallback(() => {
     console.log('Stopping wake word detection');
     isListeningRef.current = false;
+    isStartingRef.current = false;
     setIsDetectionActive(false);
     cleanup();
     
