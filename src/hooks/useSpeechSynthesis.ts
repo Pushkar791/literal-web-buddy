@@ -1,5 +1,4 @@
-
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 export const useSpeechSynthesis = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -7,11 +6,11 @@ export const useSpeechSynthesis = () => {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Check for browser support
-  useState(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       setIsSupported(true);
     }
-  });
+  }, []);
 
   const speak = useCallback((text: string, onComplete?: () => void) => {
     if (!isSupported || !text) {

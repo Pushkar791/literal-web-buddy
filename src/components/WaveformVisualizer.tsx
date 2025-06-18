@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 
 interface WaveformVisualizerProps {
@@ -6,30 +5,40 @@ interface WaveformVisualizerProps {
 }
 
 const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({ isActive }) => {
-  const [bars, setBars] = useState<number[]>(Array(20).fill(0));
+  const [bars, setBars] = useState<number[]>(Array(25).fill(0));
 
   useEffect(() => {
     if (!isActive) {
-      setBars(Array(20).fill(0));
+      setBars(Array(25).fill(0));
       return;
     }
 
     const interval = setInterval(() => {
-      setBars(prev => prev.map(() => Math.random() * 100));
-    }, 100);
+      setBars(prev => 
+        prev.map((_, i) => {
+          // Create a more natural wave pattern
+          const baseHeight = 30 + Math.random() * 40;
+          const position = i / prev.length;
+          const wave = Math.sin(position * Math.PI * 2 + Date.now() / 300) * 20;
+          return Math.max(10, baseHeight + wave);
+        })
+      );
+    }, 50);
 
     return () => clearInterval(interval);
   }, [isActive]);
 
   return (
-    <div className="flex items-end justify-center space-x-1 h-16">
+    <div className="flex items-end justify-center space-x-[2px] h-16 py-2">
       {bars.map((height, index) => (
         <div
           key={index}
-          className="bg-gradient-to-t from-blue-500 to-purple-500 w-2 rounded-full transition-all duration-100 ease-out"
+          className="bg-gradient-to-t from-purple-500 via-blue-400 to-purple-300 w-1 rounded-full transition-all duration-75 ease-out"
           style={{
-            height: isActive ? `${Math.max(height, 10)}%` : '4px',
-            opacity: isActive ? 0.8 : 0.3
+            height: isActive ? `${height}%` : '4px',
+            opacity: isActive ? 0.8 : 0.3,
+            transform: `scaleY(${isActive ? 1 : 0.5})`,
+            transition: 'height 0.1s ease-in-out, opacity 0.2s ease'
           }}
         />
       ))}

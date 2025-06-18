@@ -40,3 +40,68 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Add global styles */
+body {
+  background-color: #000;
+  overflow-x: hidden;
+}
+
+/* Starry background effect */
+.starry-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background-color: white;
+  border-radius: 50%;
+  opacity: 0.5;
+  animation: twinkle 5s infinite;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.2; }
+}
+
+/* Add aurora glow effect */
+.aurora-glow {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(76, 0, 255, 0.1) 0%,
+    rgba(76, 0, 255, 0) 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Improve scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(138, 43, 226, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(138, 43, 226, 0.8);
+}

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Volume2 } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
@@ -7,17 +6,65 @@ import { useWakeWordDetection } from '../hooks/useWakeWordDetection';
 import { processCommand } from '../utils/commandProcessor';
 import WaveformVisualizer from './WaveformVisualizer';
 import AuroraOrb from './AuroraOrb';
-import { Button } from '@/components/ui/button';
+import { Button } from './ui/button';
+
+// Component for creating stars
+const StarryBackground = () => {
+  const stars = useMemo(() => {
+    return Array.from({ length: 100 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      size: Math.random() * 2 + 1,
+      animationDelay: `${Math.random() * 5}s`,
+      animationDuration: `${Math.random() * 3 + 3}s`,
+    }));
+  }, []);
+
+  return (
+    <div className="starry-bg">
+      {stars.map(star => (
+        <div
+          key={star.id}
+          className="star"
+          style={{
+            left: star.left,
+            top: star.top,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            animationDelay: star.animationDelay,
+            animationDuration: star.animationDuration,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const VoiceAssistant = () => {
   const [isActive, setIsActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
   const [assistantState, setAssistantState] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(true);
 
   const { startListening, stopListening, transcript, isRecognitionActive } = useVoiceRecognition();
   const { speak, isSpeaking } = useSpeechSynthesis();
-  const { isWakeWordDetected, startWakeWordDetection, stopWakeWordDetection } = useWakeWordDetection();
+  const { isWakeWordDetected, startWakeWordDetection, stopWakeWordDetection, isDetectionActive } = useWakeWordDetection();
+
+  // Initialize wake word detection on component mount
+  useEffect(() => {
+    startWakeWordDetection();
+  }, [startWakeWordDetection]);
+
+  // Initial greeting
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      speak("Hello Pushkar! I'm Literal, your voice assistant. How can I help you today?");
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [speak]);
 
   // Handle wake word detection
   useEffect(() => {
@@ -25,7 +72,7 @@ const VoiceAssistant = () => {
       console.log('Wake word detected!');
       setIsActive(true);
       setAssistantState('responding');
-      speak("Yes, I'm listening.", () => {
+      speak("Yes Pushkar, I'm listening.", () => {
         setAssistantState('listening');
         startListening();
       });
@@ -40,16 +87,31 @@ const VoiceAssistant = () => {
       setCurrentMessage(transcript);
       
       setTimeout(() => {
-        const response = processCommand(transcript);
-        setAssistantState('responding');
-        speak(response.message, () => {
-          if (response.action) {
-            response.action();
-          }
-          setAssistantState('idle');
-          setIsActive(false);
-          setCurrentMessage('');
-        });
+        try {
+          const response = processCommand(transcript);
+          console.log('Command response:', response);
+          setAssistantState('responding');
+          speak(response.message, () => {
+            if (response.action) {
+              try {
+                response.action();
+              } catch (error) {
+                console.error('Error executing action:', error);
+              }
+            }
+            setAssistantState('idle');
+            setIsActive(false);
+            setCurrentMessage('');
+          });
+        } catch (error) {
+          console.error('Error processing command:', error);
+          setAssistantState('responding');
+          speak("Sorry, I couldn't process that command.", () => {
+            setAssistantState('idle');
+            setIsActive(false);
+            setCurrentMessage('');
+          });
+        }
       }, 500);
     }
   }, [transcript, isActive, assistantState, speak]);
@@ -62,8 +124,11 @@ const VoiceAssistant = () => {
   const handleManualActivation = () => {
     if (!isActive) {
       setIsActive(true);
-      setAssistantState('listening');
-      startListening();
+      setAssistantState('responding');
+      speak("Yes Pushkar, I'm listening.", () => {
+        setAssistantState('listening');
+        startListening();
+      });
     } else {
       setIsActive(false);
       setAssistantState('idle');
@@ -72,40 +137,53 @@ const VoiceAssistant = () => {
   };
 
   const toggleWakeWordDetection = () => {
-    if (isWakeWordDetected) {
+    if (isDetectionActive) {
       stopWakeWordDetection();
+      setWakeWordEnabled(false);
     } else {
       startWakeWordDetection();
+      setWakeWordEnabled(true);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Starry background */}
+      <StarryBackground />
+      
+      {/* Background gradient effects */}
+      <div className="absolute inset-0 bg-gradient-radial from-purple-900/20 via-black to-black z-0"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-3xl z-0"></div>
+      <div className="absolute top-1/3 left-1/3 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-3xl z-0"></div>
+      
+      {/* Aurora glow effect */}
+      <div className="aurora-glow"></div>
+      
+      <div className="max-w-md w-full space-y-8 z-10 relative">
         {/* Main Assistant Interface */}
         <div className="text-center space-y-6">
-          <h1 className="text-4xl font-bold text-white mb-2">Literal</h1>
+          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-2">Literal</h1>
           <p className="text-gray-300 text-sm">Your Personal Voice Assistant</p>
 
           {/* Central Aurora Orb */}
-          <div className="relative flex items-center justify-center">
-            <AuroraOrb 
-              isActive={isActive}
-              onClick={handleManualActivation}
-            />
-            
-            {/* Ripple effect for active state */}
-            {isActive && (
-              <div className="absolute inset-0 rounded-full bg-blue-400 opacity-20 animate-ping"></div>
-            )}
+          <div className="relative flex items-center justify-center my-8">
+            <div className="w-72 h-72 flex items-center justify-center">
+              <AuroraOrb 
+                isActive={isActive}
+                onClick={handleManualActivation}
+              />
+              
+              {/* Ripple effect for active state */}
+              {isActive && (
+                <div className="absolute inset-0 rounded-full bg-blue-400 opacity-10 animate-ping"></div>
+              )}
+            </div>
           </div>
 
           {/* Waveform Visualizer */}
-          {isListening && (
-            <div className="h-20 flex items-center justify-center">
-              <WaveformVisualizer isActive={isListening} />
-            </div>
-          )}
+          <div className="h-20 flex items-center justify-center">
+            <WaveformVisualizer isActive={isListening} />
+          </div>
 
           {/* Status Display */}
           <div className="space-y-3">
@@ -129,20 +207,20 @@ const VoiceAssistant = () => {
           </div>
 
           {/* Wake Word Detection Toggle */}
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center justify-center space-x-4 mt-8">
             <Button
               onClick={toggleWakeWordDetection}
-              variant={isWakeWordDetected ? "default" : "outline"}
+              variant={isDetectionActive ? "default" : "outline"}
               className="flex items-center space-x-2"
             >
               <Volume2 className="w-4 h-4" />
-              <span>{isWakeWordDetected ? 'Wake Word: ON' : 'Wake Word: OFF'}</span>
+              <span>{isDetectionActive ? 'Wake Word: ON' : 'Wake Word: OFF'}</span>
             </Button>
           </div>
 
           {/* Instructions */}
-          <div className="text-center space-y-2 text-gray-400 text-sm">
-            <p>Say "Hey Literal" or click the aurora orb</p>
+          <div className="text-center space-y-2 text-gray-400 text-sm mt-6">
+            <p>Say "Hey Literal", "Hello Literal", or "OK Literal" to activate</p>
             <p>Try: "Open YouTube", "Launch FitBuddy", "Search Google"</p>
           </div>
         </div>

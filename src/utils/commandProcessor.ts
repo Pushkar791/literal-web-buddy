@@ -18,7 +18,8 @@ const intentMap: Record<string, string> = {
   github: "https://www.github.com",
   stackoverflow: "https://stackoverflow.com",
   wikipedia: "https://www.wikipedia.org",
-  fitbuddy: "https://fit-buddy-ai.vercel.app/"
+  fitbuddy: "https://fit-buddy-ai.vercel.app/",
+  "fit buddy": "https://fit-buddy-ai.vercel.app/"
 };
 
 const greetings = [
@@ -50,6 +51,12 @@ const searchGoogle = (query: string): CommandResponse => {
 export const processCommand = (transcript: string): CommandResponse => {
   const command = transcript.toLowerCase().trim();
   console.log('Processing command:', command);
+
+  // Special case for FitBuddy
+  if (command.includes('fit buddy') || command.includes('fitbuddy')) {
+    console.log('FitBuddy command detected');
+    return openApp(intentMap.fitbuddy, 'FitBuddy');
+  }
 
   // Handle greetings
   if (command.includes('hello') || command.includes('hi') || command.includes('hey')) {

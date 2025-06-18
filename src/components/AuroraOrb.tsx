@@ -1,51 +1,4 @@
-
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sphere } from '@react-three/drei';
-import * as THREE from 'three';
-
-const AuroraOrbMesh: React.FC<{ isActive: boolean }> = ({ isActive }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.MeshStandardMaterial>(null);
-
-  // Create a gradient-like material using MeshStandardMaterial
-  const material = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#0099ff'),
-      emissive: new THREE.Color('#0066ff'),
-      emissiveIntensity: 0.3,
-      transparent: true,
-      opacity: 0.8,
-      roughness: 0.1,
-      metalness: 0.8,
-    });
-  }, []);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      // Gentle rotation
-      meshRef.current.rotation.y += 0.01;
-      meshRef.current.rotation.x += 0.005;
-      
-      // Pulsing effect when active
-      const scale = isActive ? 1 + Math.sin(state.clock.elapsedTime * 3) * 0.1 : 1;
-      meshRef.current.scale.setScalar(scale);
-      
-      // Color animation
-      if (materialRef.current) {
-        const hue = (state.clock.elapsedTime * 0.1) % 1;
-        materialRef.current.color.setHSL(0.6 + hue * 0.2, 0.8, 0.6);
-        materialRef.current.emissive.setHSL(0.6 + hue * 0.2, 0.9, 0.3);
-      }
-    }
-  });
-
-  return (
-    <Sphere ref={meshRef} args={[2, 64, 64]}>
-      <primitive ref={materialRef} object={material} attach="material" />
-    </Sphere>
-  );
-};
+import React from 'react';
 
 interface AuroraOrbProps {
   isActive: boolean;
@@ -55,18 +8,52 @@ interface AuroraOrbProps {
 const AuroraOrb: React.FC<AuroraOrbProps> = ({ isActive, onClick }) => {
   return (
     <div 
-      className="w-32 h-32 cursor-pointer"
+      className={`w-64 h-64 rounded-full cursor-pointer relative flex items-center justify-center ${
+        isActive ? 'animate-pulse' : ''
+      }`}
       onClick={onClick}
     >
-      <Canvas
-        camera={{ position: [0, 0, 5], fov: 45 }}
-        style={{ background: 'transparent' }}
-      >
-        <ambientLight intensity={0.3} />
-        <pointLight position={[10, 10, 10]} intensity={0.5} />
-        <pointLight position={[-10, -10, 10]} intensity={0.3} color="#0099ff" />
-        <AuroraOrbMesh isActive={isActive} />
-      </Canvas>
+      {/* Main orb */}
+      <div className="absolute inset-0 rounded-full bg-gradient-radial from-purple-600/30 via-blue-500/20 to-transparent animate-pulse"></div>
+      
+      {/* Inner orbs */}
+      <div className="w-56 h-56 rounded-full bg-gradient-radial from-purple-500/40 via-blue-600/20 to-transparent absolute"></div>
+      <div className="w-48 h-48 rounded-full bg-gradient-radial from-blue-500/50 via-purple-600/30 to-transparent absolute animate-pulse"></div>
+      <div className="w-40 h-40 rounded-full bg-gradient-radial from-indigo-500/60 via-purple-500/40 to-transparent absolute"></div>
+      
+      {/* Core */}
+      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-500 absolute 
+        shadow-[0_0_30px_15px_rgba(138,43,226,0.4)] animate-pulse"></div>
+      
+      {/* Particles */}
+      <div className="absolute w-full h-full">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div 
+            key={i}
+            className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              opacity: Math.random() * 0.7 + 0.3,
+              animationDelay: `${Math.random() * 2}s`,
+              animationDuration: `${Math.random() * 3 + 2}s`
+            }}
+          ></div>
+        ))}
+      </div>
+      
+      {/* Light beams */}
+      <div className={`absolute w-full h-full ${isActive ? 'opacity-70' : 'opacity-40'}`}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-4 bg-purple-500/20 rounded-full blur-md rotate-45"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-4 bg-blue-500/20 rounded-full blur-md -rotate-45"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-72 bg-indigo-500/20 rounded-full blur-md rotate-45"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-72 bg-purple-500/20 rounded-full blur-md -rotate-45"></div>
+      </div>
+      
+      {/* Active state ring */}
+      {isActive && (
+        <div className="absolute -inset-4 rounded-full border-2 border-purple-500/30 animate-ping"></div>
+      )}
     </div>
   );
 };
