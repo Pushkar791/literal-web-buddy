@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Globe } from 'lucide-react';
 import { useVoiceRecognition } from '../hooks/useVoiceRecognition';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import { useWakeWordDetection } from '../hooks/useWakeWordDetection';
-import { processCommand } from '../utils/commandProcessor';
+import { processCommand, voiceOptions, currentVoice } from '../utils/commandProcessor';
 import WaveformVisualizer from './WaveformVisualizer';
 import AuroraOrb from './AuroraOrb';
 import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
 // Component for creating stars
 const StarryBackground = () => {
@@ -47,6 +48,7 @@ const VoiceAssistant = () => {
   const [currentMessage, setCurrentMessage] = useState('');
   const [assistantState, setAssistantState] = useState<'idle' | 'listening' | 'processing' | 'responding'>('idle');
   const [wakeWordEnabled, setWakeWordEnabled] = useState(true);
+  const [selectedVoice, setSelectedVoice] = useState(currentVoice.name);
 
   const { startListening, stopListening, transcript, isRecognitionActive } = useVoiceRecognition();
   const { speak, isSpeaking } = useSpeechSynthesis();
@@ -146,6 +148,12 @@ const VoiceAssistant = () => {
     }
   };
 
+  const handleVoiceChange = (voiceName: string) => {
+    setSelectedVoice(voiceName);
+    const response = processCommand(`change voice to ${voiceName}`);
+    speak(response.message);
+  };
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
       {/* Starry background */}
@@ -206,8 +214,9 @@ const VoiceAssistant = () => {
             )}
           </div>
 
-          {/* Wake Word Detection Toggle */}
+          {/* Controls Row */}
           <div className="flex items-center justify-center space-x-4 mt-8">
+            {/* Wake Word Detection Toggle */}
             <Button
               onClick={toggleWakeWordDetection}
               variant={isDetectionActive ? "default" : "outline"}
@@ -216,12 +225,34 @@ const VoiceAssistant = () => {
               <Volume2 className="w-4 h-4" />
               <span>{isDetectionActive ? 'Wake Word: ON' : 'Wake Word: OFF'}</span>
             </Button>
+            
+            {/* Voice Accent Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center space-x-2">
+                  <Globe className="w-4 h-4" />
+                  <span>Accent: {selectedVoice}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {voiceOptions.map((voice) => (
+                  <DropdownMenuItem 
+                    key={voice.name}
+                    onClick={() => handleVoiceChange(voice.name)}
+                    className={voice.name === selectedVoice ? "bg-purple-900/30" : ""}
+                  >
+                    {voice.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {/* Instructions */}
           <div className="text-center space-y-2 text-gray-400 text-sm mt-6">
             <p>Say "Hey Literal", "Hello Literal", or "OK Literal" to activate</p>
-            <p>Try: "Play music on Spotify", "Open YouTube", "Search Google"</p>
+            <p>Try: "What is fitness?", "Play music on Spotify", "Open YouTube"</p>
+            <p className="text-xs mt-2">You can also say "Change voice to British" or ask "Who chose your name?"</p>
           </div>
         </div>
       </div>
