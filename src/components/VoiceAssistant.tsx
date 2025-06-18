@@ -221,7 +221,7 @@ const VoiceAssistant = () => {
           {/* Instructions */}
           <div className="text-center space-y-2 text-gray-400 text-sm mt-6">
             <p>Say "Hey Literal", "Hello Literal", or "OK Literal" to activate</p>
-            <p>Try: "Open YouTube", "Launch FitBuddy", "Search Google"</p>
+            <p>Try: "Play music on Spotify", "Open YouTube", "Search Google"</p>
           </div>
         </div>
       </div>

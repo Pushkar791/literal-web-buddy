@@ -48,6 +48,33 @@ const searchGoogle = (query: string): CommandResponse => {
   };
 };
 
+const playOnSpotify = (query: string): CommandResponse => {
+  // Format the search query for Spotify
+  const formattedQuery = query
+    .replace(/play|music|song|track|artist|album|on spotify/gi, '')
+    .trim();
+  
+  // If query is too generic, just open Spotify
+  if (!formattedQuery || formattedQuery === 'this' || formattedQuery.length < 3) {
+    return {
+      message: "Opening Spotify for you",
+      action: () => {
+        window.open(intentMap.spotify, '_blank');
+      }
+    };
+  }
+
+  // Create Spotify search URL with the query
+  const spotifySearchUrl = `https://open.spotify.com/search/${encodeURIComponent(formattedQuery)}`;
+  
+  return {
+    message: `Playing "${formattedQuery}" on Spotify`,
+    action: () => {
+      window.open(spotifySearchUrl, '_blank');
+    }
+  };
+};
+
 export const processCommand = (transcript: string): CommandResponse => {
   const command = transcript.toLowerCase().trim();
   console.log('Processing command:', command);
@@ -62,6 +89,12 @@ export const processCommand = (transcript: string): CommandResponse => {
   if (command.includes('hello') || command.includes('hi') || command.includes('hey')) {
     const greeting = greetings[Math.floor(Math.random() * greetings.length)];
     return { message: greeting };
+  }
+
+  // Handle Spotify music playback
+  if ((command.includes('play') || command.includes('listen to')) && 
+      (command.includes('music') || command.includes('song') || command.includes('spotify'))) {
+    return playOnSpotify(command);
   }
 
   // Handle opening apps/websites
@@ -89,7 +122,20 @@ export const processCommand = (transcript: string): CommandResponse => {
   }
 
   // Handle YouTube specific queries
-  if (command.includes('play') && (command.includes('music') || command.includes('video'))) {
+  if (command.includes('play') && (command.includes('video') || command.includes('youtube'))) {
+    // If it's specifically for YouTube
+    if (command.includes('youtube')) {
+      const query = command.replace(/play|video|on youtube|youtube/gi, '').trim();
+      if (query) {
+        const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+        return {
+          message: `Playing ${query} on YouTube`,
+          action: () => {
+            window.open(youtubeSearchUrl, '_blank');
+          }
+        };
+      }
+    }
     return openApp(intentMap.youtube, 'YouTube');
   }
 
