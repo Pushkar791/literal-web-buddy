@@ -5,7 +5,7 @@ import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
 import { useWakeWordDetection } from '../hooks/useWakeWordDetection';
 import { processCommand, voiceOptions, currentVoice } from '../utils/commandProcessor';
 import WaveformVisualizer from './WaveformVisualizer';
-import AuroraOrb from './AuroraOrb';
+import Spline from '@splinetool/react-spline';
 import { Button } from './ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 
@@ -155,7 +155,7 @@ const VoiceAssistant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden">
       {/* Starry background */}
       <StarryBackground />
       
@@ -167,35 +167,39 @@ const VoiceAssistant = () => {
       {/* Aurora glow effect */}
       <div className="aurora-glow"></div>
       
-      <div className="max-w-md w-full space-y-8 z-10 relative">
-        {/* Main Assistant Interface */}
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500 mb-2">Literal</h1>
-          <p className="text-gray-300 text-sm">Your Personal Voice Assistant</p>
-
-          {/* Central Aurora Orb */}
-          <div className="relative flex items-center justify-center my-8">
-            <div className="w-72 h-72 flex items-center justify-center">
-              <AuroraOrb 
-                isActive={isActive}
-                onClick={handleManualActivation}
-              />
-              
-              {/* Ripple effect for active state */}
-              {isActive && (
-                <div className="absolute inset-0 rounded-full bg-blue-400 opacity-10 animate-ping"></div>
-              )}
-            </div>
+      {/* Central Spline 3D Animation - Full Size */}
+      <div 
+        className="absolute inset-0 z-10 cursor-pointer" 
+        onClick={handleManualActivation}
+      >
+        <Spline 
+          scene="https://prod.spline.design/bLsojOM7FJkngdFS/scene.splinecode" 
+          style={{ width: '100%', height: '100%' }}
+        />
+        
+        {/* Ripple effect for active state */}
+        {isActive && (
+          <div className="absolute inset-0 bg-blue-400 opacity-5 animate-ping"></div>
+        )}
+      </div>
+      
+      {/* Assistant UI Overlay */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6 z-20">
+        <div className="max-w-md mx-auto space-y-4">
+          {/* Title */}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Literal</h1>
+            <p className="text-gray-300 text-sm">Your Personal Voice Assistant</p>
           </div>
-
+          
           {/* Waveform Visualizer */}
-          <div className="h-20 flex items-center justify-center">
+          <div className="h-16 flex items-center justify-center">
             <WaveformVisualizer isActive={isListening} />
           </div>
-
+          
           {/* Status Display */}
           <div className="space-y-3">
-            <div className={`text-lg font-medium transition-colors duration-300 ${
+            <div className={`text-lg font-medium text-center transition-colors duration-300 ${
               assistantState === 'idle' ? 'text-gray-400' :
               assistantState === 'listening' ? 'text-blue-400' :
               assistantState === 'processing' ? 'text-yellow-400' :
@@ -215,7 +219,7 @@ const VoiceAssistant = () => {
           </div>
 
           {/* Controls Row */}
-          <div className="flex items-center justify-center space-x-4 mt-8">
+          <div className="flex items-center justify-center space-x-4">
             {/* Wake Word Detection Toggle */}
             <Button
               onClick={toggleWakeWordDetection}
@@ -247,12 +251,11 @@ const VoiceAssistant = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
+          
           {/* Instructions */}
-          <div className="text-center space-y-2 text-gray-400 text-sm mt-6">
-            <p>Say "Hey Literal", "Hello Literal", or "OK Literal" to activate</p>
+          <div className="text-center space-y-1 text-gray-400 text-xs">
+            <p>Say "Hey Literal" or tap the animation to activate</p>
             <p>Try: "What is fitness?", "Play music on Spotify", "Open YouTube"</p>
-            <p className="text-xs mt-2">You can also say "Change voice to British" or ask "Who chose your name?"</p>
           </div>
         </div>
       </div>
